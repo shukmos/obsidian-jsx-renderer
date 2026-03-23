@@ -1,0 +1,9 @@
+{
+  "id": "jsx-renderer",
+  "name": "JSX Renderer",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "ClaudeのJSXアーティファクトをObsidian上でインタラクティブにレンダリング",
+  "author": "mos",
+  "isDesktopOnly": true
+}
