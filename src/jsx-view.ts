@@ -42,7 +42,9 @@ export class JsxFileView extends TextFileView {
       this.buildUI();
     }
 
-    if (this.settings.autoRender) {
+    if (this.showSource) {
+      this.updateView();
+    } else if (this.settings.autoRender) {
       this.renderJsx();
     } else {
       this.showPlaceholder();

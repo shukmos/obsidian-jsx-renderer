@@ -7,6 +7,32 @@ export interface RenderOptions {
   showErrorDetails?: boolean;
 }
 
+// ランタイムエラーをキャッチするError Boundary
+class ErrorBoundary extends React.Component<
+  { onError: (error: Error) => void; children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { onError: (error: Error) => void; children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error): void {
+    this.props.onError(error);
+  }
+
+  render(): React.ReactNode {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
+
 /**
  * JSXソースコードをトランスパイルし、Reactコンポーネントとして評価する
  */
@@ -61,16 +87,8 @@ export function renderToContainer(
   // エラー表示用のラッパー
   const wrapper = container.createDiv({ cls: "jsx-renderer-wrapper" });
 
-  try {
-    const Component = transpileAndEvaluate(jsxSource);
-    const root = ReactDOM.createRoot(wrapper);
-    root.render(React.createElement(Component));
-
-    return () => {
-      root.unmount();
-    };
-  } catch (err) {
-    // エラー時はエラーメッセージを表示
+  const showError = (err: unknown) => {
+    wrapper.empty();
     wrapper.addClass("jsx-renderer-error");
     wrapper.createEl("div", {
       cls: "jsx-renderer-error-title",
@@ -83,6 +101,25 @@ export function renderToContainer(
         text: err instanceof Error ? err.message : String(err),
       });
     }
+  };
+
+  try {
+    const Component = transpileAndEvaluate(jsxSource);
+    const root = ReactDOM.createRoot(wrapper);
+
+    // Error Boundaryでランタイムエラーもキャッチ
+    root.render(
+      React.createElement(ErrorBoundary, {
+        onError: (error: Error) => showError(error),
+        children: React.createElement(Component),
+      })
+    );
+
+    return () => {
+      root.unmount();
+    };
+  } catch (err) {
+    showError(err);
 
     return () => {
       wrapper.empty();
