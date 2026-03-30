@@ -5,5 +5,5 @@
   "minAppVersion": "1.5.0",
   "description": "ClaudeのJSXアーティファクトをObsidian上でインタラクティブにレンダリング",
   "author": "mos",
-  "isDesktopOnly": true
+  "isDesktopOnly": false
 }
