@@ -95,3 +95,16 @@
 .jsx-view-render {
   min-height: 200px;
 }
+
+/* 表示/非表示の切り替え用 */
+.jsx-renderer-hidden {
+  display: none !important;
+}
+
+/* 自動レンダリング無効時のプレースホルダー */
+.jsx-renderer-placeholder {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}

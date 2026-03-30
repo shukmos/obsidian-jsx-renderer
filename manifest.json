@@ -1,9 +1,9 @@
 {
   "id": "jsx-renderer",
   "name": "JSX Renderer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "minAppVersion": "1.5.0",
-  "description": "ClaudeのJSXアーティファクトをObsidian上でインタラクティブにレンダリング",
+  "description": "Render JSX artifacts from Claude and other LLMs as interactive React components.",
   "author": "mos",
   "isDesktopOnly": false
 }

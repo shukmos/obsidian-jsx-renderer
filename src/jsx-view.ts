@@ -1,6 +1,7 @@
 // .jsxファイルをObsidianで開いた時にレンダリング結果を表示するビュー
 import { TextFileView, WorkspaceLeaf } from "obsidian";
 import { renderToContainer } from "./jsx-renderer";
+import type { JsxRendererSettings } from "./settings";
 
 export const JSX_VIEW_TYPE = "jsx-view";
 
@@ -8,10 +9,13 @@ export class JsxFileView extends TextFileView {
   private cleanup: (() => void) | null = null;
   private renderContainer: HTMLElement | null = null;
   private sourceContainer: HTMLElement | null = null;
-  private showSource = false;
+  private showSource: boolean;
+  private settings: JsxRendererSettings;
 
-  constructor(leaf: WorkspaceLeaf) {
+  constructor(leaf: WorkspaceLeaf, settings: JsxRendererSettings) {
     super(leaf);
+    this.settings = settings;
+    this.showSource = settings.defaultShowSource;
   }
 
   getViewType(): string {
@@ -38,7 +42,11 @@ export class JsxFileView extends TextFileView {
       this.buildUI();
     }
 
-    this.renderJsx();
+    if (this.settings.autoRender) {
+      this.renderJsx();
+    } else {
+      this.showPlaceholder();
+    }
   }
 
   clear(): void {
@@ -52,7 +60,7 @@ export class JsxFileView extends TextFileView {
     // ソース/レンダリング切り替え
     const toggleBtn = toolbar.createEl("button", {
       cls: "jsx-view-toggle",
-      text: "ソースを表示",
+      text: this.showSource ? "レンダリングを表示" : "ソースを表示",
     });
     toggleBtn.addEventListener("click", () => {
       this.showSource = !this.showSource;
@@ -77,22 +85,26 @@ export class JsxFileView extends TextFileView {
     this.sourceContainer = this.contentEl.createDiv({
       cls: "jsx-view-source",
     });
-    this.sourceContainer.style.display = "none";
+
+    // 初期表示状態を設定
+    if (this.showSource) {
+      this.renderContainer.addClass("jsx-renderer-hidden");
+    } else {
+      this.sourceContainer.addClass("jsx-renderer-hidden");
+    }
   }
 
   private updateView(): void {
     if (!this.renderContainer || !this.sourceContainer) return;
 
+    this.renderContainer.toggleClass("jsx-renderer-hidden", this.showSource);
+    this.sourceContainer.toggleClass("jsx-renderer-hidden", !this.showSource);
+
     if (this.showSource) {
-      this.renderContainer.style.display = "none";
-      this.sourceContainer.style.display = "block";
       this.sourceContainer.empty();
       this.sourceContainer.createEl("pre").createEl("code", {
         text: this.data,
       });
-    } else {
-      this.renderContainer.style.display = "block";
-      this.sourceContainer.style.display = "none";
     }
   }
 
@@ -103,7 +115,19 @@ export class JsxFileView extends TextFileView {
 
     if (!this.data.trim()) return;
 
-    this.cleanup = renderToContainer(this.renderContainer, this.data);
+    this.cleanup = renderToContainer(this.renderContainer, this.data, {
+      showErrorDetails: this.settings.showErrorDetails,
+    });
+  }
+
+  private showPlaceholder(): void {
+    if (!this.renderContainer) return;
+    this.cleanupRender();
+    this.renderContainer.empty();
+    this.renderContainer.createDiv({
+      cls: "jsx-renderer-placeholder",
+      text: "「再レンダリング」ボタンを押してレンダリングを開始",
+    });
   }
 
   private cleanupRender(): void {

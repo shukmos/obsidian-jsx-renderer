@@ -3,6 +3,10 @@ import { transform } from "sucrase";
 import React from "react";
 import ReactDOM from "react-dom/client";
 
+export interface RenderOptions {
+  showErrorDetails?: boolean;
+}
+
 /**
  * JSXソースコードをトランスパイルし、Reactコンポーネントとして評価する
  */
@@ -49,8 +53,11 @@ export function transpileAndEvaluate(jsxSource: string): React.ComponentType {
  */
 export function renderToContainer(
   container: HTMLElement,
-  jsxSource: string
+  jsxSource: string,
+  options?: RenderOptions
 ): () => void {
+  const showErrorDetails = options?.showErrorDetails ?? true;
+
   // エラー表示用のラッパー
   const wrapper = container.createDiv({ cls: "jsx-renderer-wrapper" });
 
@@ -69,10 +76,13 @@ export function renderToContainer(
       cls: "jsx-renderer-error-title",
       text: "JSX レンダリングエラー",
     });
-    wrapper.createEl("pre", {
-      cls: "jsx-renderer-error-message",
-      text: err instanceof Error ? err.message : String(err),
-    });
+
+    if (showErrorDetails) {
+      wrapper.createEl("pre", {
+        cls: "jsx-renderer-error-message",
+        text: err instanceof Error ? err.message : String(err),
+      });
+    }
 
     return () => {
       wrapper.empty();

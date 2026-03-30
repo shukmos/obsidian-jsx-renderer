@@ -1,6 +1,7 @@
 // マークダウン内の ```jsx コードブロックをReactコンポーネントとしてレンダリングするプロセッサ
 import { MarkdownPostProcessorContext } from "obsidian";
 import { renderToContainer } from "./jsx-renderer";
+import type { JsxRendererSettings } from "./settings";
 
 /**
  * コードブロックプロセッサを登録する
@@ -9,7 +10,8 @@ import { renderToContainer } from "./jsx-renderer";
 export function jsxCodeBlockProcessor(
   source: string,
   el: HTMLElement,
-  _ctx: MarkdownPostProcessorContext
+  _ctx: MarkdownPostProcessorContext,
+  settings: JsxRendererSettings
 ): void {
   // ソースが空なら何もしない
   if (!source.trim()) return;
@@ -21,24 +23,31 @@ export function jsxCodeBlockProcessor(
   const toolbar = container.createDiv({ cls: "jsx-renderer-toolbar" });
   const toggleBtn = toolbar.createEl("button", {
     cls: "jsx-renderer-toggle-source",
-    text: "ソースを表示",
+    text: settings.defaultShowSource ? "レンダリングを表示" : "ソースを表示",
   });
 
   const renderArea = container.createDiv({ cls: "jsx-renderer-render-area" });
-  const sourceArea = container.createDiv({ cls: "jsx-renderer-source-area" });
-  sourceArea.style.display = "none";
+  const sourceArea = container.createDiv({
+    cls: `jsx-renderer-source-area${settings.defaultShowSource ? "" : " jsx-renderer-hidden"}`,
+  });
   sourceArea.createEl("pre").createEl("code", { text: source });
 
-  let showSource = false;
+  if (settings.defaultShowSource) {
+    renderArea.addClass("jsx-renderer-hidden");
+  }
+
+  let showSource = settings.defaultShowSource;
   toggleBtn.addEventListener("click", () => {
     showSource = !showSource;
-    sourceArea.style.display = showSource ? "block" : "none";
-    renderArea.style.display = showSource ? "none" : "block";
+    sourceArea.toggleClass("jsx-renderer-hidden", !showSource);
+    renderArea.toggleClass("jsx-renderer-hidden", showSource);
     toggleBtn.textContent = showSource ? "レンダリングを表示" : "ソースを表示";
   });
 
   // レンダリング実行
-  const cleanup = renderToContainer(renderArea, source);
+  const cleanup = renderToContainer(renderArea, source, {
+    showErrorDetails: settings.showErrorDetails,
+  });
 
   // MutationObserverでDOMからの除去を検知してクリーンアップ
   const observer = new MutationObserver(() => {
@@ -47,5 +56,8 @@ export function jsxCodeBlockProcessor(
       observer.disconnect();
     }
   });
-  observer.observe(el.parentElement ?? document.body, { childList: true, subtree: true });
+  observer.observe(el.parentElement ?? document.body, {
+    childList: true,
+    subtree: true,
+  });
 }
