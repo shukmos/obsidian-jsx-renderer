@@ -1,5 +1,4 @@
 .env
 node_modules/
-main.js
 dist/
 data.json
