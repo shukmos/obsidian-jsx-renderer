@@ -1,0 +1,57 @@
+# Claude Code が探索・読み込みから除外するパス
+# 参考: ~/MosVault/Resources/know-how/AIエージェント コンテキスト圧縮 - 5つの対策まとめ.md
+
+# 依存・ビルド成果物
+node_modules/
+.pnpm-store/
+vendor/
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+.cache/
+target/
+*.egg-info/
+__pycache__/
+.venv/
+venv/
+.tox/
+
+# テスト・カバレッジ
+coverage/
+.nyc_output/
+htmlcov/
+.pytest_cache/
+
+# ロックファイル（参照されたい時だけ明示Read）
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+Cargo.lock
+poetry.lock
+uv.lock
+Gemfile.lock
+composer.lock
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+
+# ログ・一時ファイル
+*.log
+logs/
+tmp/
+.tmp/
+
+# Git 自身（.git は元々除外だが念のため）
+.git/
+
+# minified / bundle
+*.min.js
+*.min.css
+*.bundle.js
+*.map
